@@ -18,7 +18,7 @@
            (java.io Reader)))
 
 ; Represents a parse event.
-; type is one of :start-element, :end-element, or :characters
+; type is one of :start-element, :end-element, or :chars
 (defrecord Event [type name attrs str])
 
 (defn event [type name & [attrs str]]
@@ -297,7 +297,7 @@
        XMLStreamConstants/CHARACTERS
        (if-let [text (and (not (.isWhiteSpace sreader))
                           (.getText sreader))]
-         (cons (event :characters nil nil text)
+         (cons (event :chars nil nil text)
                (pull-seq sreader))
          (recur))
        XMLStreamConstants/END_DOCUMENT

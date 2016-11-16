@@ -24,7 +24,7 @@
     [pprint :refer
      [indent-xml]]
     [parse :refer
-     [pull-seq string-source make-stream-reader]]
+     [pull-seq attach-location-meta string-source make-stream-reader]]
     [emit :refer
      [write-document string-writer]])
    
@@ -54,17 +54,24 @@
                        :coalescing true
                        :supporting-external-entities false}
                       props)]
-    (pull-seq (make-stream-reader props* source)
-              (get props* :include-node?)
-              nil)))
+    (let [sreader (make-stream-reader props* source)]
+      (pull-seq sreader
+                (get props* :include-node?)
+                (if (get props* :with-location-meta)
+                  (partial attach-location-meta sreader)
+                  identity)
+                nil))))
 
 (defn parse
   "Parses the source, which can be an
    InputStream or Reader, and returns a lazy tree of Element records. Accepts key pairs
    with XMLInputFactory options, see http://docs.oracle.com/javase/6/docs/api/javax/xml/stream/XMLInputFactory.html
    and xml-input-factory-props for more information. Defaults coalescing true."
-  [source & opts]
-  (event-tree (event-seq source opts)))
+  [source & {:keys [with-location-meta] :as opts}]
+  (event-tree (event-seq source opts) (merge {}
+                                             (when with-location-meta
+                                               {:event-element-fn event/event-element-with-meta})
+                                             opts)))
 
 (defn parse-str
   "Parses the passed in string to Clojure data structures.  Accepts key pairs

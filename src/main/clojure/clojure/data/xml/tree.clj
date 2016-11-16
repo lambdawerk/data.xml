@@ -63,9 +63,16 @@
 
 ;; "Emit" events to the in-memory representation
 
+(def default-tree-fns {:event-element-fn event-element
+                       :event-exit?-fn event-exit?
+                       :event-node-fn event-node})
+
 (defn event-tree
   "Returns a lazy tree of Element objects for the given seq of Event
   objects. See source-seq and parse."
-  [events]
-  (ffirst
-   (seq-tree event-element event-exit? event-node events)))
+  ([events]
+    (event-tree events {}))
+  ([events opts]
+   (let [{:keys [event-element-fn event-exit?-fn event-node-fn]} (merge default-tree-fns opts)]
+     (ffirst
+       (seq-tree event-element-fn event-exit?-fn event-node-fn events)))))

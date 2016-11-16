@@ -76,6 +76,12 @@
     (element* (:tag event) (:attrs event) contents
               {:clojure.data.xml/nss (:nss event)})))
 
+(defn event-element-with-meta
+  [event contents]
+  (when-let [element (event-element event contents)]
+    (with-meta element (merge (meta event)
+                              (meta element)))))
+
 (defn event-node [event]
   (cond
     (instance? CharsEvent event) (:str event)

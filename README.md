@@ -323,6 +323,20 @@ Removing the metadata will cause the elements to not have a prefix,
 which is still correct, but will cause new prefixes to be generated
 when the document is emitted.
 
+## Location information as meta
+
+Optionally you can ask the parser to attach location information as meta by 
+saying:
+    
+    (parse-str :with-location-meta true)
+
+Then, :character-offset, :column-number and :line-number are available in the
+meta of the elements.
+
+    (deftest test-location-meta
+      (let [input "<a/>"]
+        (is (= 1 (-> input (parse-str :with-location-meta true) meta :line-number)))))
+
 ## License
 
 Licensed under the [Eclipse Public License](http://www.opensource.org/licenses/eclipse-1.0.php).

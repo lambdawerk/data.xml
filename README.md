@@ -327,8 +327,8 @@ when the document is emitted.
 
 Optionally you can ask the parser to attach location information as meta by 
 saying:
-    
-    (parse-str :with-location-meta true)
+
+    (parse-str your-input :with-location-meta true)
 
 Then, :character-offset, :column-number and :line-number are available in the
 meta of the elements.

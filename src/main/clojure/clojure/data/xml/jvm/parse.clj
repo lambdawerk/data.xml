@@ -71,19 +71,17 @@
          XMLStreamConstants/START_ELEMENT
          (if (include-node? :element)
            (let [ns-env (nss-hash sreader (or (first ns-envs) {}))]
-             (cons (event-fn (->StartElementEvent
-                               (canonical-name (.getNamespaceURI sreader)
-                                               (.getLocalName sreader)
-                                               (.getPrefix sreader))
-                               (attr-hash sreader)
-                               ns-env))
+             (cons (event-fn (->StartElementEvent (canonical-name (.getNamespaceURI sreader)
+                                                                  (.getLocalName sreader)
+                                                                  (.getPrefix sreader))
+                                                  (attr-hash sreader)
+                                                  ns-env))
                    (pull-seq sreader include-node? event-fn (cons ns-env ns-envs))))
            (recur))
          XMLStreamConstants/END_ELEMENT
          (if (include-node? :element)
            (do (assert (seq ns-envs) "Balanced end")
-               (cons (event-fn (->EndElementEvent
-                                 (keyword (.getLocalName sreader))))
+               (cons (event-fn (->EndElementEvent (keyword (.getLocalName sreader))))
                      (pull-seq sreader include-node?  event-fn (rest ns-envs))))
            (recur))
          XMLStreamConstants/CHARACTERS

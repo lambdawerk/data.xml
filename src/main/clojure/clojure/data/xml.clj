@@ -56,10 +56,7 @@
                       props)]
     (let [sreader (make-stream-reader props* source)]
       (pull-seq sreader
-                (get props* :include-node?)
-                (if (get props* :location-info)
-                  (partial attach-location-meta sreader)
-                  identity)
+                props*
                 nil))))
 
 (defn parse
@@ -67,11 +64,15 @@
    InputStream or Reader, and returns a lazy tree of Element records. Accepts key pairs
    with XMLInputFactory options, see http://docs.oracle.com/javase/6/docs/api/javax/xml/stream/XMLInputFactory.html
    and xml-input-factory-props for more information. Defaults coalescing true."
-  [source & {:keys [location-info] :or {location-info true} :as opts}]
-  (event-tree (event-seq source opts) (merge {}
-                                             (when location-info
-                                               {:event-element-fn event/event-element-with-meta})
-                                             opts)))
+  [source & {:as opts}]
+  (let [{:keys [location-info] :as opts*} (if (-> opts :location-info nil?)
+                                            (assoc opts :location-info true)
+                                            opts)]
+    (event-tree (event-seq source opts*)
+                (merge {}
+                       (when location-info
+                         {:event-element-fn event/event-element-with-meta})
+                       opts*))))
 
 (defn parse-str
   "Parses the passed in string to Clojure data structures.  Accepts key pairs

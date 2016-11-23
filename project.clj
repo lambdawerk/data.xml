@@ -1,4 +1,4 @@
-(defproject org.clojure/data.xml "0.0.0-local"
+(defproject org.clojure/data.xml "0-DEVELOPMENT"
   :source-paths ["src/main/clojure"]
   :test-paths ["src/test/clojure"]
   :resource-paths ["src/test/resources"]

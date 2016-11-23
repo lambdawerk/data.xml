@@ -325,17 +325,19 @@ when the document is emitted.
 
 ## Location information as meta
 
-Optionally you can ask the parser to attach location information as meta by 
-saying:
-
-    (parse-str your-input :with-location-meta true)
-
-Then, :character-offset, :column-number and :line-number are available in the
-meta of the elements.
+By default the parser attaches location information as element meta,
+ `:character-offset`, `:column-number` and `:line-number` are available under
+ the `:clojure.data.xml/location-info` key:
 
     (deftest test-location-meta
-      (let [input "<a/>"]
-        (is (= 1 (-> input (parse-str :with-location-meta true) meta :line-number)))))
+      (let [input "<a><b/>\n<b/></a>"
+            location-meta (comp :clojure.data.xml/location-info meta)]
+        (is (= 1 (-> input parse-str location-meta :line-number)))
+        
+If you do not want to see the location info for any reason use an option to
+prevent that:
+
+    (parse-str your-input :location-info false)
 
 ## License
 

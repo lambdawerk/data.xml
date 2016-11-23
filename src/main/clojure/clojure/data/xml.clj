@@ -67,9 +67,9 @@
    InputStream or Reader, and returns a lazy tree of Element records. Accepts key pairs
    with XMLInputFactory options, see http://docs.oracle.com/javase/6/docs/api/javax/xml/stream/XMLInputFactory.html
    and xml-input-factory-props for more information. Defaults coalescing true."
-  [source & {:keys [with-location-meta] :as opts}]
+  [source & {:keys [location-info] :or {location-info true} :as opts}]
   (event-tree (event-seq source opts) (merge {}
-                                             (when with-location-meta
+                                             (when location-info
                                                {:event-element-fn event/event-element-with-meta})
                                              opts)))
 

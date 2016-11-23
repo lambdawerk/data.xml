@@ -27,7 +27,7 @@
 
 ; Represents a parse event.
 ; type is one of :start-element, :end-element, or :characters
-(defrecord StartElementEvent [tag attrs nss])
+(defrecord StartElementEvent [tag attrs nss location-info])
 (defrecord EndElementEvent [tag])
 (defrecord CharsEvent [str])
 (defrecord CDataEvent [str])
@@ -40,7 +40,7 @@
       {:gen-event (fn elem-gen-event [{:keys [tag attrs] :as element}]
                     (separate-xmlns
                      attrs #(->StartElementEvent
-                             tag %1 (merge-nss (element-nss* element) %2))))
+                             tag %1 (merge-nss (element-nss* element) %2) nil)))
        :next-events (fn elem-next-events [{:keys [tag content]} next-items]
                       (list* content (->EndElementEvent tag) next-items))}]
   (extend-protocol-fns
@@ -79,8 +79,7 @@
 (defn event-element-with-meta
   [event contents]
   (when-let [element (event-element event contents)]
-    (with-meta element (merge (meta event)
-                              (meta element)))))
+    (vary-meta element assoc :clojure.data.xml/location-info (:location-info event))))
 
 (defn event-node [event]
   (cond

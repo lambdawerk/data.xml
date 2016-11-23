@@ -57,7 +57,7 @@
     (let [sreader (make-stream-reader props* source)]
       (pull-seq sreader
                 (get props* :include-node?)
-                (if (get props* :with-location-meta)
+                (if (get props* :location-info)
                   (partial attach-location-meta sreader)
                   identity)
                 nil))))

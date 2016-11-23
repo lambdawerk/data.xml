@@ -55,6 +55,13 @@
            (transient parent-hash)
            (range (.getNamespaceCount sreader)))))
 
+(defn location-hash
+  [^XMLStreamReader sreader]
+  (when-let [location (.getLocation sreader)]
+    {:character-offset (.getCharacterOffset location)
+     :column-number (.getColumnNumber location)
+     :line-number (.getLineNumber location)}))
+
 ; Note, sreader is mutable and mutated here in pull-seq, but it's
 ; protected by a lazy-seq so it's thread-safe.
 (defn pull-seq
@@ -75,7 +82,8 @@
                                                                   (.getLocalName sreader)
                                                                   (.getPrefix sreader))
                                                   (attr-hash sreader)
-                                                  ns-env))
+                                                  ns-env
+                                                  (location-hash sreader)))
                    (pull-seq sreader include-node? event-fn (cons ns-env ns-envs))))
            (recur))
          XMLStreamConstants/END_ELEMENT

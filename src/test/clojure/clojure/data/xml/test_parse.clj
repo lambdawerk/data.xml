@@ -84,8 +84,8 @@
 (deftest test-location-meta
   (let [input "<a><b/>\n<b/></a>"]
     ;the numbers look 1 based and :column-number is bigger with one (at least) than expected
-    (is (= 1 (-> input (parse-str :with-location-meta true) meta :line-number)))
-    (is (= 4 (-> input (parse-str :with-location-meta true) meta :column-number)))
-    (is (= 1 (-> input (parse-str :with-location-meta true) :content first meta :line-number)))
-    (is (= 8 (-> input (parse-str :with-location-meta true) :content first meta :column-number)))
-    (is (= 2 (-> input (parse-str :with-location-meta true) :content second meta :line-number)))))
+    (is (= 1 (-> input parse-str meta  :clojure.data.xml/location-info :line-number)))
+    (is (= 4 (-> input parse-str meta :clojure.data.xml/location-info :column-number)))
+    (is (= 1 (-> input parse-str :content first meta :clojure.data.xml/location-info :line-number)))
+    (is (= 8 (-> input parse-str :content first meta :clojure.data.xml/location-info :column-number)))
+    (is (= 2 (-> input parse-str :content second meta :clojure.data.xml/location-info :line-number)))))

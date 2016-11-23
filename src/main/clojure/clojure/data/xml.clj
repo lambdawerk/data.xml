@@ -24,7 +24,7 @@
     [pprint :refer
      [indent-xml]]
     [parse :refer
-     [pull-seq attach-location-meta string-source make-stream-reader]]
+     [pull-seq string-source make-stream-reader]]
     [emit :refer
      [write-document string-writer]])
    

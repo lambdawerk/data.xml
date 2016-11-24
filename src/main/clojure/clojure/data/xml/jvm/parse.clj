@@ -55,12 +55,19 @@
            (transient parent-hash)
            (range (.getNamespaceCount sreader)))))
 
+(defn- location-hash
+  [^XMLStreamReader sreader]
+  (when-let [location (.getLocation sreader)]
+    {:character-offset (.getCharacterOffset location)
+     :column-number (.getColumnNumber location)
+     :line-number (.getLineNumber location)}))
+
 ; Note, sreader is mutable and mutated here in pull-seq, but it's
 ; protected by a lazy-seq so it's thread-safe.
 (defn pull-seq
   "Creates a seq of events.  The XMLStreamConstants/SPACE clause below doesn't seem to
    be triggered by the JDK StAX parser, but is by others.  Leaving in to be more complete."
-  [^XMLStreamReader sreader include-node? ns-envs]
+  [^XMLStreamReader sreader {:keys [include-node? location-info] :as opts} ns-envs]
   (lazy-seq
    (loop []
      (static-case
@@ -73,26 +80,28 @@
                                                      (.getLocalName sreader)
                                                      (.getPrefix sreader))
                                      (attr-hash sreader)
-                                     ns-env)
-                (pull-seq sreader include-node? (cons ns-env ns-envs))))
+                                     ns-env
+                                     (when location-info
+                                       (location-hash sreader)))
+                (pull-seq sreader opts (cons ns-env ns-envs))))
         (recur))
       XMLStreamConstants/END_ELEMENT
       (if (include-node? :element)
         (do (assert (seq ns-envs) "Balanced end")
             (cons (->EndElementEvent (keyword (.getLocalName sreader)))
-                  (pull-seq sreader include-node? (rest ns-envs))))
+                  (pull-seq sreader opts (rest ns-envs))))
         (recur))
       XMLStreamConstants/CHARACTERS
       (if-let [text (and (include-node? :characters)
                          (not (.isWhiteSpace sreader))
                          (.getText sreader))]
         (cons (->CharsEvent text)
-              (pull-seq sreader include-node? ns-envs))
+              (pull-seq sreader opts ns-envs))
         (recur))
       XMLStreamConstants/COMMENT
       (if (include-node? :comment)
         (cons (->CommentEvent (.getText sreader))
-              (pull-seq sreader include-node? ns-envs))
+              (pull-seq sreader opts ns-envs))
         (recur))
       XMLStreamConstants/END_DOCUMENT
       nil

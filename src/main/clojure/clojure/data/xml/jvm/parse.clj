@@ -70,43 +70,44 @@
   [^XMLStreamReader sreader {:keys [include-node? location-info] :as opts} ns-envs]
   (lazy-seq
    (loop []
-     (static-case
-      (.next sreader)
-                                        ; condp == (.next sreader)
-      XMLStreamConstants/START_ELEMENT
-      (if (include-node? :element)
-        (let [ns-env (nss-hash sreader (or (first ns-envs) {}))]
-          (cons (->StartElementEvent (canonical-name (.getNamespaceURI sreader)
-                                                     (.getLocalName sreader)
-                                                     (.getPrefix sreader))
-                                     (attr-hash sreader)
-                                     ns-env
-                                     (when location-info
-                                       (location-hash sreader)))
-                (pull-seq sreader opts (cons ns-env ns-envs))))
-        (recur))
-      XMLStreamConstants/END_ELEMENT
-      (if (include-node? :element)
-        (do (assert (seq ns-envs) "Balanced end")
-            (cons (->EndElementEvent (keyword (.getLocalName sreader)))
-                  (pull-seq sreader opts (rest ns-envs))))
-        (recur))
-      XMLStreamConstants/CHARACTERS
-      (if-let [text (and (include-node? :characters)
-                         (not (.isWhiteSpace sreader))
-                         (.getText sreader))]
-        (cons (->CharsEvent text)
-              (pull-seq sreader opts ns-envs))
-        (recur))
-      XMLStreamConstants/COMMENT
-      (if (include-node? :comment)
-        (cons (->CommentEvent (.getText sreader))
-              (pull-seq sreader opts ns-envs))
-        (recur))
-      XMLStreamConstants/END_DOCUMENT
-      nil
-      ;; Consume and ignore comments, spaces, processing instructions etc
-      (recur)))))
+     (let [location (when location-info
+                      (location-hash sreader))]
+       (static-case
+         (.next sreader)
+         ; condp == (.next sreader)
+         XMLStreamConstants/START_ELEMENT
+         (if (include-node? :element)
+           (let [ns-env (nss-hash sreader (or (first ns-envs) {}))]
+             (cons (->StartElementEvent (canonical-name (.getNamespaceURI sreader)
+                                                        (.getLocalName sreader)
+                                                        (.getPrefix sreader))
+                                        (attr-hash sreader)
+                                        ns-env
+                                        location)
+                   (pull-seq sreader opts (cons ns-env ns-envs))))
+           (recur))
+         XMLStreamConstants/END_ELEMENT
+         (if (include-node? :element)
+           (do (assert (seq ns-envs) "Balanced end")
+               (cons (->EndElementEvent (keyword (.getLocalName sreader)))
+                     (pull-seq sreader opts (rest ns-envs))))
+           (recur))
+         XMLStreamConstants/CHARACTERS
+         (if-let [text (and (include-node? :characters)
+                            (not (.isWhiteSpace sreader))
+                            (.getText sreader))]
+           (cons (->CharsEvent text)
+                 (pull-seq sreader opts ns-envs))
+           (recur))
+         XMLStreamConstants/COMMENT
+         (if (include-node? :comment)
+           (cons (->CommentEvent (.getText sreader))
+                 (pull-seq sreader opts ns-envs))
+           (recur))
+         XMLStreamConstants/END_DOCUMENT
+         nil
+         ;; Consume and ignore comments, spaces, processing instructions etc
+         (recur))))))
 
 (defn- make-input-factory [props]
   (let [fac (XMLInputFactory/newInstance)]
